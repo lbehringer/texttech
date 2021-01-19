@@ -17,7 +17,7 @@ class WikiSpider(scrapy.Spider):
 
         # first extract the city name, which has it's own particular xpath
         city = rows.xpath('th/div/span/text()').get()
-        city_data = {"City": city}
+        city_data = {"City_name": city}
 
         # keep track of the last row entry, so we know when to nest dictionaries
         last_bullet = ""
@@ -27,12 +27,7 @@ class WikiSpider(scrapy.Spider):
             # some of the data we want is in the table heading (th) section
             bullet = row.xpath('th/text()').get()
             if bullet:
-                print("b:", bullet)
-
-                # put an entry in the city_data dictionary for the th
-                city_data[bullet] = None
-
-                # then get the numberic data from the td field
+                # then get the numeric data from the td field
                 number = row.xpath('td/text()').get()
 
                 # often it's None, in which case just keep going
@@ -42,17 +37,19 @@ class WikiSpider(scrapy.Spider):
 
                 # some start with a bullet-point, which is this in unicode
                 if bullet.startswith('\u00a0\u2022\u00a0'):
-                    new = bullet.replace('\u00a0\u2022\u00a0', '')
-                    print('new', new)
-                    print('last', last_bullet)
+                    bullet = bullet.replace('\u00a0\u2022\u00a0', '')
+                    print('last1:', last_bullet)
+                    print("b:", bullet)
+                    print('#', number)
                     # that means we need to add it to the previous entry
-                    city_data[last_bullet] = {new: number}
+                    # ISSUE: if there is more than one entry for a last_bullet,
+                    # the latest entry just stamps over the previous entry
+                    city_data[last_bullet] = {bullet: number}
 
                 # otherwise, we do a new entry
                 else:
                     city_data[bullet] = number
-                last_bullet = bullet
-                print('#', number)
+                    last_bullet = bullet
 
             else:
                 # if it's a heading, also print it
@@ -69,8 +66,14 @@ class WikiSpider(scrapy.Spider):
 
 
 class NumbeoSpider(scrapy.Spider):
+    """
+    Spider to get cost of living data from Numbeo
+    """
     name = 'numbeo'
     start_urls = ['https://www.numbeo.com/cost-of-living/in/Stuttgart']
+    # custom settings to save results to a json file
+    custom_settings = {'FEED_URI': "numbeo.json",
+                       'FEED_FORMAT': 'json'}
 
     def parser(self, response):
         path = response.xpath('/html/body/div[2]/div[2]')
