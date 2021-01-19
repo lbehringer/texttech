@@ -25,50 +25,56 @@ class WikiSpider(scrapy.Spider):
         # iterate over the rows in the table
         for row in rows:
             # some of the data we want is in the table heading (th) section
-            bullet = row.xpath('th/text()').get()
-            if bullet:
+            heading = row.xpath('th/text()').get()
+            if heading:
                 # then get the numeric data from the td field
                 number = row.xpath('td/text()').get()
 
                 # often it's None, in which case just keep going
                 if number is None:
-                    last_bullet = bullet
+                    last_bullet = heading
                     continue
 
                 # some start with a bullet-point, which is this in unicode
-                if bullet.startswith('\u00a0\u2022\u00a0'):
-                    bullet = bullet.replace('\u00a0\u2022\u00a0', '')
-                    print('last1:', last_bullet)
-                    print("b:", bullet)
-                    print('#', number)
-                    # that means we need to add it to the previous entry
-                    # ISSUE: if there is more than one entry for a last_bullet,
-                    # the latest entry just stamps over the previous entry
-                    city_data[last_bullet] = {bullet: number}
+                # if it's a bullet, it's a value for the previous heading key
+                if heading.startswith('\u00a0\u2022\u00a0'):
+                    bullet = heading.replace('\u00a0\u2022\u00a0', '')
+                    # if there's nothing left, just skip
+                    if not bullet:
+                        continue
+                    # check if there's a previous entry
+                    if last_bullet in city_data:
+                        # if there is, add an extra value to the previous entry
+                        city_data[last_bullet][bullet] = number
+                    # or create the first value for the previous entry
+                    else:
+                        city_data[last_bullet] = {bullet: number}
 
-                # otherwise, we do a new entry
+                # if it's not , we do a new entry
                 else:
-                    city_data[bullet] = number
-                    last_bullet = bullet
+                    city_data[heading] = number
+                    last_bullet = heading
 
             else:
-                # if it's a heading, also print it
+                # if it's a heading in /a/ section, also get it
                 heading = row.xpath('th/a/text()').get()
+                # if it's empty, just skip
                 if heading is None:
                     continue
+
+                # get the associated numeric data
                 text = row.xpath('td/a/text()').get()
-                print("h:", heading)
+                # if it's empty, just skip
                 if text is None:
                     continue
-                print("txt:", text)
+
+                # add both to the city data dictionary
                 city_data[heading] = text
+
         yield city_data
 
 
 class NumbeoSpider(scrapy.Spider):
-    """
-    Spider to get cost of living data from Numbeo
-    """
     name = 'numbeo'
     start_urls = ['https://www.numbeo.com/cost-of-living/in/Stuttgart']
     # custom settings to save results to a json file
