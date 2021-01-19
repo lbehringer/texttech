@@ -1,5 +1,5 @@
 import scrapy
-
+import json
 
 class WikiSpider(scrapy.Spider):
     """
@@ -91,5 +91,46 @@ class NumbeoSpider(scrapy.Spider):
         yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
+class urlSpider(scrapy.Spider):
+    name = 'url'
+    start_urls = ['https://en.wikipedia.org/wiki/List_of_cities_in_Germany_by_population']
+    # custom settings to save results to a json file
+    custom_settings = {'FEED_URI': "urls.json",
+                       'FEED_FORMAT': 'json'}
+
+    def parse(self, response):
+        rows = response.xpath('//*[@id="mw-content-text"]/div[1]/table/tbody/tr')
+        urls = {}
+        for row in rows:
+            # some are in italics and bold txt, hence the additional /i/b/
+            link = row.xpath('td/i/b/a/@href').get()
+            # some are in italics but not bold txt, so we need /i/
+            if link is None:
+                link = row.xpath('td/i/a/@href').get()
+            # some are in bold but not italics, so we need /b/
+            if link is None:
+                link = row.xpath('td/b/a/@href').get()
+            # some are not bold or italicised, so we don't need either
+            if link is None:
+                link = row.xpath('td/a/@href').get()
+            urls[link] = 0
+        yield urls
+
+
+def read_json(file_name):
+    """
+    :param file_name: string that matches the name of the json (probable urls.json)
+    :return: list of strings of urls
+    """
+    # to make this work, the json file must be in the same location as the spider
+    with open(file_name) as f:
+        f = json.load(f)
+    url_dict = f[0]
+    urls = [key for key, value in url_dict.items()]
+    # Bremen is returned as Bremen_(state) but needs to be just Bremen
+    # Oldenburg is returned as Oldenburg_(city), might need to be just Oldenburg
+    return urls[1:]
+
+
 if __name__ == '__main__':
-    pass
+    print(read_json('urls.json'))
