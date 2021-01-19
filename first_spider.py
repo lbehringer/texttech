@@ -81,8 +81,14 @@ class NumbeoSpider(scrapy.Spider):
     custom_settings = {'FEED_URI': "numbeo.json",
                        'FEED_FORMAT': 'json'}
 
-    def parser(self, response):
+    def parse(self, response):
         path = response.xpath('/html/body/div[2]/div[2]')
+        city = path.xpath('p/span[@class="purple_light"]/text()').get()
+        four = path.xpath('ul/li[1]/span/text()').get()
+        single = path.xpath('ul/li[2]/span/text()').get()
+        print('done')
+        print(city, four, single)
+        yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
 if __name__ == '__main__':
