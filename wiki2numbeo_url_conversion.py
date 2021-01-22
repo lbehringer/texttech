@@ -5,9 +5,9 @@ import re
 # the first part of the city name
 # the complete city name + "-Germany"
 # the complete city name
-def wiki2numbeo(wiki_url):
+def wiki2numbeo(wiki_subdirectory):
     domain = "numbeo.com/cost-of-living/in/"
-    wiki_city = get_wiki_city(wiki_url)
+    wiki_city = get_wiki_city(wiki_subdirectory)
     wiki_city = remove_segment_after_comma(wiki_city)
     wiki_city = replace_umlaut(wiki_city)
     wiki_city = replace_underscore(wiki_city)
@@ -25,8 +25,8 @@ def wiki2numbeo(wiki_url):
 # example numb URL: numbeo.com/cost-of-living/in/Regensburg
 # just start the URL string with numbeo domain 
 # remove "/wiki/" from start
-def get_wiki_city(wiki_url):
-    return wiki_url[6:]
+def get_wiki_city(wiki_subdirectory):
+    return wiki_subdirectory[6:]
 
 
 # Wiki sometimes links cities with e.g. Bundesland information after a comma
