@@ -6,23 +6,27 @@ import re
 # the complete city name + "-Germany"
 # the complete city name
 def wiki2numbeo(wiki_subdirectory):
-    domain = "numbeo.com/cost-of-living/in/"
+    numbeo_domain = "numbeo.com/cost-of-living/in/"
     wiki_city = get_wiki_city(wiki_subdirectory)
     wiki_city = remove_segment_after_comma(wiki_city)
     wiki_city = replace_umlaut(wiki_city)
     wiki_city = replace_underscore(wiki_city)
     numbeo_city_first, numbeo_city = capitalize_all(wiki_city)
 
-    # 4 variants to try (in the order they are returned)
-    numbeo_url_first = domain + numbeo_city_first
-    numbeo_url = domain + numbeo_city
+    # 4 variants to try (in the order they are returned).
+    numbeo_url_first = numbeo_domain + numbeo_city_first
     numbeo_first_country = specify_country(numbeo_url_first)
+    numbeo_url = numbeo_domain + numbeo_city
     numbeo_url_country = specify_country(numbeo_url)
+    # Only return all 4 variants if numbeo_url_first and numbeo_first_country
+    # are different from numbeo_city and numbeo_country.
+    if numbeo_city_first != numbeo_city:
+        return numbeo_first_country, numbeo_url_first, numbeo_url_country, numbeo_url
+    else:
+        return numbeo_url_country, numbeo_url
 
-    return numbeo_first_country, numbeo_url_first, numbeo_url_country, numbeo_url
-
-# example wiki string (already stripped of domain): /wiki/Regensburg
-# example numb URL: numbeo.com/cost-of-living/in/Regensburg
+# example wiki subdirectory: /wiki/Regensburg
+# example numbeo URL: numbeo.com/cost-of-living/in/Regensburg
 # just start the URL string with numbeo domain 
 # remove "/wiki/" from start
 def get_wiki_city(wiki_subdirectory):
@@ -30,6 +34,7 @@ def get_wiki_city(wiki_subdirectory):
 
 
 # Wiki sometimes links cities with e.g. Bundesland information after a comma
+# whereas numbeo doesn't.
 # /wiki/Herne,_North_Rhine-Westphalia
 def remove_segment_after_comma(city):
     if "," in city:
@@ -103,6 +108,6 @@ cities = {
 
 numbeo_cities = []
 for key in cities.keys():
-    numbeo_cities.append(wiki2numbeo(key))
+    numbeo_cities.extend(wiki2numbeo(key))
 
 print(numbeo_cities)
