@@ -4,6 +4,7 @@ import json
 class WikiSpider(scrapy.Spider):
     """
     spider to get city data from Wikipedia pages
+    Test change
     """
     name = "wiki"
     start_urls = ['https://en.wikipedia.org/wiki/Stuttgart']
