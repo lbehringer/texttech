@@ -1,11 +1,12 @@
-import re
+# --- For reasoning behind the methods below, please see wiki_numbeo_differences.txt. ---
 
-# returns 4 values: 
-# the first part of the city name + "-Germany"
-# the first part of the city name
-# the complete city name + "-Germany"
-# the complete city name
+
 def wiki2numbeo(wiki_subdirectory):
+    """returns 2 or 4 values:
+    1. the first part of the city name + '-Germany' (only if not identical with 3.)
+    2. the first part of the city name (only if not identical with 4.)
+    3. the complete city name + '-Germany'
+    4. the complete city name"""
     numbeo_domain = "numbeo.com/cost-of-living/in/"
     wiki_city = get_wiki_city(wiki_subdirectory)
     wiki_city = remove_segment_after_comma(wiki_city)
@@ -25,61 +26,54 @@ def wiki2numbeo(wiki_subdirectory):
     else:
         return numbeo_url_country, numbeo_url
 
-# example wiki subdirectory: /wiki/Regensburg
-# example numbeo URL: numbeo.com/cost-of-living/in/Regensburg
-# just start the URL string with numbeo domain 
-# remove "/wiki/" from start
+
 def get_wiki_city(wiki_subdirectory):
+    """ example input: '/wiki/Berlin'
+    this removes '/wiki/' from beginning of string"""
     return wiki_subdirectory[6:]
 
 
-# Wiki sometimes links cities with e.g. Bundesland information after a comma
-# whereas numbeo doesn't.
-# /wiki/Herne,_North_Rhine-Westphalia
 def remove_segment_after_comma(city):
+    """example input: '/wiki/Herne,_North_Rhine-Westphalia'
+    returns only the part before the comma"""
     if "," in city:
         parts = city.split(",")
         return parts[0]
     else:
         return city
 
-# Wiki has Umlaute, numbeo doesn't: 
-# "/wiki/Saarbrücken", "numbeo.../Saarbrucken"
-# de.wikipedia.org/wiki/Hilfe:Sonderzeichenreferenz
-# could perhaps formulate this more efficiently
+
 def replace_umlaut(city):
-    city_no_umlaut = city
-    city_no_umlaut = city_no_umlaut.replace("Ä", "A")
-    city_no_umlaut = city_no_umlaut.replace("%C3%84", "A")
-    city_no_umlaut = city_no_umlaut.replace("Ö", "O")
-    city_no_umlaut = city_no_umlaut.replace("%C3%96", "O")
-    city_no_umlaut = city_no_umlaut.replace("Ü", "U")
-    city_no_umlaut = city_no_umlaut.replace("%C3%9C", "U")
-    city_no_umlaut = city_no_umlaut.replace("ß", "ss")
-    city_no_umlaut = city_no_umlaut.replace("%C3%9F", "ss")
-    city_no_umlaut = city_no_umlaut.replace("ä", "a")
-    city_no_umlaut = city_no_umlaut.replace("%C3%A4", "a")
-    city_no_umlaut = city_no_umlaut.replace("ö", "o")
-    city_no_umlaut = city_no_umlaut.replace("%C3%B6", "o")
-    city_no_umlaut = city_no_umlaut.replace("ü", "u")
-    city_no_umlaut = city_no_umlaut.replace("%C3%BC", "u")
-    return city_no_umlaut
+    """replaces umlauts.
+    URL representation of umlauts taken from de.wikipedia.org/wiki/Hilfe:Sonderzeichenreferenz"""
+    city = city.replace("Ä", "A")
+    city = city.replace("%C3%84", "A")
+    city = city.replace("Ö", "O")
+    city = city.replace("%C3%96", "O")
+    city = city.replace("Ü", "U")
+    city = city.replace("%C3%9C", "U")
+    city = city.replace("ß", "ss")
+    city = city.replace("%C3%9F", "ss")
+    city = city.replace("ä", "a")
+    city = city.replace("%C3%A4", "a")
+    city = city.replace("ö", "o")
+    city = city.replace("%C3%B6", "o")
+    city = city.replace("ü", "u")
+    city = city.replace("%C3%BC", "u")
+    return city
 
 
-# 
-# Wiki splits words with underscore, numbeo with hyphen:
-# "/wiki/Freiburg_im_Breisgau", "numbeo.../Freiburg-Im-Breisgau"
 def replace_underscore(city):
+    """replaces underscores with hyphens"""
     city_hyphen = city.replace("_", "-")
     return city_hyphen
 
-# numbeo capitalizes all words in city names that consist of more than 1 word:
-# "wiki/Offenbach_am_Main", "numbeo.../Offenbach-Am-Main-Germany"
-# --> capitalize all words after getting wiki URL as input
-# --> input already has hyphens instead of underscores
-# returns two values: complete city name "city_cap"
-# and first word of city name "city_cap_first"
+
 def capitalize_all(city_hyphen):
+    """gets (hyphenated) city name as input
+    capitalizes all words and returns 2 values:
+    1. complete city name 'city_cap'
+    2. first word of city name 'city_cap_first'"""
     parts = city_hyphen.split("-")
     city_cap = ''
     city_cap_first = ''
@@ -95,10 +89,8 @@ def capitalize_all(city_hyphen):
     return city_cap_first, city_cap
 
 
-# on numbeo, some cities have a "-Germany" after the city name
-# --> create if loop: if "Kassel" doesn't exist, try appending "-Germany"
-# if this also doesn't exist, skip this city
 def specify_country(numbeo_url):
+    """adds '-Germany' to numbeo_url"""
     return numbeo_url + "-Germany"
 
 
