@@ -1,6 +1,7 @@
 import scrapy
 import json
 
+
 class WikiSpider(scrapy.Spider):
     """
     spider to get city data from Wikipedia pages
