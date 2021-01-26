@@ -1,26 +1,25 @@
-# CONVERSION DIRECTION: 
-# WIKI TO NUMBEO
-# 
-# example wiki URL: en.wikipedia.org/wiki/Regensburg
-# example numb URL: numbeo.com/cost-of-living/in/Regensburg
-#
-# key differences:
+CONVERSION DIRECTION:
+WIKI TO NUMBEO
 
-# Wiki sometimes links cities with e.g. Bundesland information after a comma
-# /wiki/Herne,_North_Rhine-Westphalia
+example wiki URL: en.wikipedia.org/wiki/Regensburg
+example numb URL: numbeo.com/cost-of-living/in/Regensburg
 
-# Wiki has Umlaute, numbeo doesn't: 
-# "/wiki/Saarbrücken", "numbeo.../Saarbrucken"
-# 
-# Wiki splits words with underscore, numbeo with hyphen:
-# "/wiki/Freiburg_im_Breisgau", "numbeo.../Freiburg-Im-Breisgau"
-#
-# numbeo capitalizes all words in city names that consist of more than 1 word:
-# "wiki/Offenbach_am_Main", "numbeo.../Offenbach-Am-Main-Germany"
-# --> capitalize all words after getting wiki URL as input
-#
-# on numbeo, some cities have a "-Germany" after the city name
-# --> create if loop: if "Kassel" doesn't exist, try appending "-Germany"
-# if this also doesn't exist, skip this city
+--- Key differences:---
 
-# other differences: Halle_(Saale)
+Wiki sometimes links cities with e.g. Bundesland information after a comma
+/wiki/Herne,_North_Rhine-Westphalia
+
+Wiki has Umlaute, numbeo doesn't:
+"/wiki/Saarbrücken", "numbeo.../Saarbrucken"
+
+Wiki splits words with underscore, numbeo with hyphen:
+"/wiki/Freiburg_im_Breisgau", "numbeo.../Freiburg-Im-Breisgau"
+
+numbeo capitalizes all words in city names that consist of more than 1 word:
+"wiki/Offenbach_am_Main", "numbeo.../Offenbach-Am-Main-Germany"
+--> capitalize all words after getting wiki URL as input
+
+on numbeo, some cities have a "-Germany" after the city name
+--> create variants of city names with and without "-Germany"
+
+other differences: Halle_(Saale)

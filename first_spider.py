@@ -4,6 +4,7 @@ from scrapy.crawler import CrawlerRunner
 import wiki2numbeo_url_conversion
 import wiki2wiki_url_conversion
 
+
 class WikiSpider(scrapy.Spider):
     """
     spider to get city data from Wikipedia pages
