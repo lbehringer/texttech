@@ -1,5 +1,7 @@
 import scrapy
 import json
+from wiki2wiki_url_conversion import wiki_cities
+from wiki2numbeo_url_conversion import numbeo_cities
 
 
 class WikiSpider(scrapy.Spider):
@@ -8,7 +10,8 @@ class WikiSpider(scrapy.Spider):
     Test change
     """
     name = "wiki"
-    start_urls = ['https://en.wikipedia.org/wiki/Stuttgart']
+    start_urls = wiki_cities
+
     # custom settings to save results to a json file
     custom_settings = {'FEED_URI': "wiki.json",
                        'FEED_FORMAT': 'json'}
@@ -19,6 +22,9 @@ class WikiSpider(scrapy.Spider):
 
         # first extract the city name, which has it's own particular xpath
         city = rows.xpath('th/div/span/text()').get()
+        # Berlin and Hamburg also have their own particular xpath...
+        if city in ['(', '\u00a0']:
+            city = rows.xpath('th/div/text()').get()
         city_data = {"City_name": city}
 
         # keep track of the last row entry, so we know when to nest dictionaries
@@ -78,7 +84,8 @@ class WikiSpider(scrapy.Spider):
 
 class NumbeoSpider(scrapy.Spider):
     name = 'numbeo'
-    start_urls = ['https://www.numbeo.com/cost-of-living/in/Stuttgart']
+    start_urls = numbeo_cities
+
     # custom settings to save results to a json file
     custom_settings = {'FEED_URI': "numbeo.json",
                        'FEED_FORMAT': 'json'}
@@ -88,8 +95,6 @@ class NumbeoSpider(scrapy.Spider):
         city = path.xpath('p/span[@class="purple_light"]/text()').get()
         four = path.xpath('ul/li[1]/span/text()').get()
         single = path.xpath('ul/li[2]/span/text()').get()
-        print('done')
-        print(city, four, single)
         yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
@@ -121,10 +126,11 @@ class urlSpider(scrapy.Spider):
 
 def read_json(file_name):
     """
-    :param file_name: string that matches the name of the json (probable urls.json)
+    :param file_name: string that matches the path to the json (probable urls.json)
     :return: list of strings of urls
     """
     # to make this work, the json file must be in the same location as the spider
+
     with open(file_name) as f:
         f = json.load(f)
     url_dict = f[0]
@@ -135,4 +141,4 @@ def read_json(file_name):
 
 
 if __name__ == '__main__':
-    print(read_json('urls.json'))
+    pass
