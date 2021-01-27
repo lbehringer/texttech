@@ -7,7 +7,7 @@ def wiki2numbeo(wiki_subdirectory):
     2. the first part of the city name (only if not identical with 4.)
     3. the complete city name + '-Germany'
     4. the complete city name"""
-    numbeo_domain = "numbeo.com/cost-of-living/in/"
+    numbeo_domain = "https://www.numbeo.com/cost-of-living/in/"
     wiki_city = get_wiki_city(wiki_subdirectory)
     wiki_city = remove_segment_after_comma(wiki_city)
     wiki_city = replace_umlaut(wiki_city)
