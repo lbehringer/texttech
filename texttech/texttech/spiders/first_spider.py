@@ -135,8 +135,6 @@ def read_json(file_name):
         f = json.load(f)
     url_dict = f[0]
     urls = [key for key, value in url_dict.items()]
-    # Bremen is returned as Bremen_(state) but needs to be just Bremen
-    # Oldenburg is returned as Oldenburg_(city), might need to be just Oldenburg
     return urls[1:]
 
 
