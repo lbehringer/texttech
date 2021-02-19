@@ -52,7 +52,7 @@ def get_total_area(c):
         return cursor.fetchall()[0][0]
 
 
-def get_average_cost(c):
+def get_avg_family_cost(c):
     """select the average monthly living cost for a family of four"""
     with c:
         cursor = c.cursor()
@@ -63,14 +63,64 @@ def get_average_cost(c):
         return cursor.fetchall()[0][0]
 
 
+def get_avg_single_cost(c):
+    """select the average monthly living cost for a family of four"""
+    with c:
+        cursor = c.cursor()
+        cursor.execute(
+            'SELECT AVG(single_person) '
+            'FROM joined_table ')
+        # this returns a tuple in a list, so let's index in to get the number
+        return cursor.fetchall()[0][0]
+
+
+def get_avg_sg_cost_NRW(c):
+    """select the average monthly living cost for a single person in the state
+    of North Rhine-Westphalia"""
+    with c:
+        cursor = c.cursor()
+        cursor.execute(
+            'SELECT AVG(single_person) '
+            'FROM joined_table '
+            'WHERE state="North Rhine-Westphalia"')
+        # this returns a tuple in a list, so let's index in to get the number
+        return cursor.fetchall()[0][0]
+
+
+def get_avg_fam_cost_NRW(c):
+    """select the average monthly living cost for a single person in the state
+    of North Rhine-Westphalia"""
+    with c:
+        cursor = c.cursor()
+        cursor.execute(
+            'SELECT AVG(family_of_four) '
+            'FROM joined_table '
+            'WHERE state="North Rhine-Westphalia"')
+        # this returns a tuple in a list, so let's index in to get the number
+        return cursor.fetchall()[0][0]
+
+
 if __name__ == '__main__':
     c = sqlite3.connect('tables')
     top_5 = get_top_density_low_cost(c)
+    top_5_cities = [data[0] for data in top_5]
+    print("Five highest density cities that have a cost of living below 750"
+          "euro per month for a single person: %s" % ", ".join(top_5_cities))
     max_cost = get_highest_family_cost(c)
+    print("City with the highest monthly cost of living for a family of four: "
+          "%s" % max_cost[0][0])
     min_cost = get_lowest_single_cost(c)
-    print(min_cost)
+    print("City with the lowest montly cost of living for a single person: %s" %
+          min_cost[0][0])
     total_area = get_total_area(c)
-    # print to 2 decimal points
-    print("Total area: %.2f" % total_area)
-    avg_cost = get_average_cost(c)
-    print("Average family cost (Euro): %.2f" % avg_cost)
+    print("Total area (km2): %.2f" % total_area)
+    avg_fam_cost = get_avg_family_cost(c)
+    print("Average monthly family cost (Euro): %.2f" % avg_fam_cost)
+    avg_fam_NRW_cost = get_avg_fam_cost_NRW(c)
+    print("Average monthly family person cost (Euro) in NRW: %.2f" %
+          avg_fam_NRW_cost)
+    avg_sg_cost = get_avg_single_cost(c)
+    print("Average monthly single person cost (Euro): %.2f" % avg_sg_cost)
+    avg_sg_NRW_cost = get_avg_sg_cost_NRW(c)
+    print("Average monthly single person cost (Euro) in NRW: %.2f" %
+          avg_sg_NRW_cost)
