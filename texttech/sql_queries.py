@@ -2,6 +2,7 @@
 in Germany. Note: the tables.db file needs to be in the same location as this
 python file in order for it to run correctly."""
 import sqlite3
+from os import linesep
 
 
 def get_top_density_low_cost(c):
@@ -11,8 +12,8 @@ def get_top_density_low_cost(c):
     with c:
         cursor = c.cursor()
         cursor.execute(
-            'SELECT city, density_km2, single_person '
-            'FROM joined_table '
+            'SELECT wiki.city, density_km2, single_person '
+            'FROM wiki LEFT OUTER JOIN numbeo ON numbeo.City = wiki.City '
             'WHERE single_person < 750 '
             'ORDER BY density_km2 DESC '
             'LIMIT 5')
@@ -21,23 +22,26 @@ def get_top_density_low_cost(c):
 
 def get_highest_family_cost(c):
     """select the city with the highest monthly living cost for a family of
-    four. Return fields: city, area, population, density, and cost"""
+    four where the density is < 1500 people per square km.
+    Return fields: city and cost"""
     with c:
         cursor = c.cursor()
         cursor.execute(
-            'SELECT city, area_km2, population, density_km2, MAX(family_of_four) '
-            'FROM joined_table ')
+            'SELECT wiki.city, MAX(family_of_four) '
+            'FROM wiki LEFT OUTER JOIN numbeo ON numbeo.City = wiki.City '
+            'WHERE density_km2 < 1500')
         return cursor.fetchall()
 
 
 def get_lowest_single_cost(c):
-    """select the city with the highest monthly living cost for a family of
-        four. Return fields: city, area, population, density, and cost"""
+    """select the city with the lowest monthly living cost for a family of four
+     and a population over 300,000. Return fields: city, population, and cost"""
     with c:
         cursor = c.cursor()
         cursor.execute(
-            'SELECT city, area_km2, population, density_km2, MIN(single_person) '
-            'FROM joined_table ')
+            'SELECT wiki.city, MIN(family_of_four) '
+            'FROM wiki LEFT OUTER JOIN numbeo ON numbeo.City = wiki.City '
+            'WHERE population > 300000')
         return cursor.fetchall()
 
 
@@ -47,7 +51,7 @@ def get_total_area(c):
         cursor = c.cursor()
         cursor.execute(
             'SELECT SUM(area_km2) '
-            'FROM joined_table ')
+            'FROM wiki')
         # this returns a tuple in a list, so let's index in to get the number
         return cursor.fetchall()[0][0]
 
@@ -58,18 +62,18 @@ def get_avg_family_cost(c):
         cursor = c.cursor()
         cursor.execute(
             'SELECT AVG(family_of_four) '
-            'FROM joined_table ')
+            'FROM numbeo')
         # this returns a tuple in a list, so let's index in to get the number
         return cursor.fetchall()[0][0]
 
 
 def get_avg_single_cost(c):
-    """select the average monthly living cost for a family of four"""
+    """select the average monthly living cost for a single person"""
     with c:
         cursor = c.cursor()
         cursor.execute(
             'SELECT AVG(single_person) '
-            'FROM joined_table ')
+            'FROM numbeo')
         # this returns a tuple in a list, so let's index in to get the number
         return cursor.fetchall()[0][0]
 
@@ -81,7 +85,7 @@ def get_avg_sg_cost_NRW(c):
         cursor = c.cursor()
         cursor.execute(
             'SELECT AVG(single_person) '
-            'FROM joined_table '
+            'FROM wiki LEFT OUTER JOIN numbeo ON numbeo.City = wiki.City '
             'WHERE state="North Rhine-Westphalia"')
         # this returns a tuple in a list, so let's index in to get the number
         return cursor.fetchall()[0][0]
@@ -94,7 +98,7 @@ def get_avg_fam_cost_NRW(c):
         cursor = c.cursor()
         cursor.execute(
             'SELECT AVG(family_of_four) '
-            'FROM joined_table '
+            'FROM wiki LEFT OUTER JOIN numbeo ON numbeo.City = wiki.City '
             'WHERE state="North Rhine-Westphalia"')
         # this returns a tuple in a list, so let's index in to get the number
         return cursor.fetchall()[0][0]
@@ -104,23 +108,27 @@ if __name__ == '__main__':
     c = sqlite3.connect('tables')
     top_5 = get_top_density_low_cost(c)
     top_5_cities = [data[0] for data in top_5]
-    print("Five highest density cities that have a cost of living below 750"
-          "euro per month for a single person: %s" % ", ".join(top_5_cities))
     max_cost = get_highest_family_cost(c)
-    print("City with the highest monthly cost of living for a family of four: "
-          "%s" % max_cost[0][0])
     min_cost = get_lowest_single_cost(c)
-    print("City with the lowest montly cost of living for a single person: %s" %
-          min_cost[0][0])
     total_area = get_total_area(c)
-    print("Total area (km2): %.2f" % total_area)
     avg_fam_cost = get_avg_family_cost(c)
-    print("Average monthly family cost (Euro): %.2f" % avg_fam_cost)
     avg_fam_NRW_cost = get_avg_fam_cost_NRW(c)
-    print("Average monthly family person cost (Euro) in NRW: %.2f" %
-          avg_fam_NRW_cost)
     avg_sg_cost = get_avg_single_cost(c)
-    print("Average monthly single person cost (Euro): %.2f" % avg_sg_cost)
     avg_sg_NRW_cost = get_avg_sg_cost_NRW(c)
-    print("Average monthly single person cost (Euro) in NRW: %.2f" %
+    print("Five highest density cities that have a cost of living below 750"
+          "euro per month for a single person:")
+    print(", ".join(top_5_cities), linesep)
+    print("City with the highest monthly cost of living for a family of four "
+          "and density below 1500 people per square km:")
+    print("%s. Cost in euro: %s" % max_cost[0], linesep)
+    print("City with the lowest monthly cost of living for a single person "
+          "and population over 300,000:")
+    print("%s. Cost in euro: %s" % min_cost[0], linesep)
+    print("Total area of the cities in our database in square kilometres:")
+    print("%.2f" % total_area, linesep)
+    print("Average monthly family cost in euro: %.2f" % avg_fam_cost)
+    print("Average monthly family person cost in euro in NRW: %.2f" %
+          avg_fam_NRW_cost)
+    print("Average monthly single person cost in euro: %.2f" % avg_sg_cost)
+    print("Average monthly single person cost in euro in NRW: %.2f" %
           avg_sg_NRW_cost)
