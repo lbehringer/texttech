@@ -74,7 +74,8 @@ def format_numbeo_data(numbeo_data):
             formatted_entry = {"City": entry["City"],
                                "Family_of_four": family_cost,
                                "Single_person": single_cost}
-            formatted.append(formatted_entry)
+            if formatted_entry not in formatted:
+                formatted.append(formatted_entry)
     return formatted
 
 
@@ -102,7 +103,6 @@ def format_wiki_data(wiki_data):
         #elevation = get_wiki_elevation(entry)
 
         # population and density are a nested dictionary, extract these
-        # TODO: Berlin has 'City/State' for Population
         density, population = get_wiki_popdensity(entry, area)
         formatted_entry = {"City": city,
                            "State": state,
