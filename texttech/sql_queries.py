@@ -34,12 +34,12 @@ def get_highest_family_cost(c):
 
 
 def get_lowest_single_cost(c):
-    """select the city with the lowest monthly living cost for a family of four
+    """select the city with the lowest monthly living cost for a single person
      and a population over 300,000. Return fields: city, population, and cost"""
     with c:
         cursor = c.cursor()
         cursor.execute(
-            'SELECT wiki.city, MIN(family_of_four) '
+            'SELECT wiki.city, MIN(single_person) '
             'FROM wiki LEFT OUTER JOIN numbeo ON numbeo.City = wiki.City '
             'WHERE population > 300000')
         return cursor.fetchall()

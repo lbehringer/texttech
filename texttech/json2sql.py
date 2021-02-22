@@ -71,12 +71,12 @@ def build_sql_tables(wiki_data, numbeo_data):
     # create the numbeo table and insert data
     create_numbeo_table(conn)
     for each in numbeo_data:
-        insert_numbeo_city(conn, list(each.values()))
+        insert_numbeo_city(conn, each)
 
     # create the wiki table and insert data
     create_wiki_table(conn)
     for each in wiki_data:
-        insert_wiki_city(conn, list(each.values()))
+        insert_wiki_city(conn, each)
 
     # split the numbeo city column > city, country columns
     split_numbeo_col(conn)
