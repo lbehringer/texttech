@@ -71,9 +71,7 @@ def format_numbeo_data(numbeo_data):
             family_cost = float(get_digit(entry["Family_of_four"]))
             single_cost = float(get_digit(entry["Single_person"]))
             # then put it back together and add to list of formatted data
-            formatted_entry = {"City": entry["City"],
-                               "Family_of_four": family_cost,
-                               "Single_person": single_cost}
+            formatted_entry = [entry["City"], family_cost, single_cost]
             if formatted_entry not in formatted:
                 formatted.append(formatted_entry)
     return formatted
@@ -99,17 +97,9 @@ def format_wiki_data(wiki_data):
         # get just area in km2, not unit or miles
         area = get_wiki_area(entry)
 
-        # get just elevation in m, not unit or feet
-        #elevation = get_wiki_elevation(entry)
-
         # population and density are a nested dictionary, extract these
         density, population = get_wiki_popdensity(entry, area)
-        formatted_entry = {"City": city,
-                           "State": state,
-                           "Area": area,
-                           #"Elevation": elevation,
-                           "Density": density,
-                           "Population": population}
+        formatted_entry = [city, state, area, density, population]
         formatted.append(formatted_entry)
     return formatted
 
@@ -150,19 +140,6 @@ def get_wiki_area(entry):
     else:
         area = get_digit(entry["Area"]["City/State"])
     return float(area)
-
-
-def get_wiki_elevation(entry):
-    """
-    Takes a single wikipedia data entry and returns the elevation field as a
-    float
-    """
-    # TODO: figure out what to do with Highest/Lowest/missing elevations
-    try:
-        elevation = get_digit(entry["Elevation"])
-    except KeyError:
-        print(entry)
-    return float(elevation)
 
 
 def get_wiki_popdensity(entry, area):
