@@ -4,6 +4,8 @@ from scrapy.crawler import CrawlerProcess
 from texttech.spiders.first_spider import WikiSpider, NumbeoSpider
 from wiki2wiki_url_conversion import wiki2wiki
 from wiki2numbeo_url_conversion import wiki2numbeo
+from json_formatting import format_wiki_data, format_numbeo_data, load_json
+from json2sql import build_sql_tables
 
 
 def clear_json(file_name):
@@ -63,4 +65,13 @@ def run_wiki_numbeo_spiders():
     return None
 
 
+# run WikiSpider and NumbeoSpider simultaneously
 run_wiki_numbeo_spiders()
+# read data from files "numbeo.json" and "wiki.json" and format it for entry into SQL tables
+NUMBEO_DATA = load_json('numbeo.json')
+FORMATTED_NUMBEO = format_numbeo_data(NUMBEO_DATA)
+WIKI_DATA = load_json('wiki.json')
+FORMATTED_WIKI = format_wiki_data(WIKI_DATA)
+
+#create sql tables from formatted data
+build_sql_tables(FORMATTED_WIKI, FORMATTED_NUMBEO)

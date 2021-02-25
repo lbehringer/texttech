@@ -96,7 +96,8 @@ class NumbeoSpider(scrapy.Spider):
         city = path.xpath('p/span[@class="purple_light"]/text()').get()
         four = path.xpath('ul/li[1]/span/text()').get()
         single = path.xpath('ul/li[2]/span/text()').get()
-        yield {'City': city, 'Family_of_four': four, "Single_person": single}
+        if city:
+            yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
 class urlSpider(scrapy.Spider):

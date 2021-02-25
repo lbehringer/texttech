@@ -9,7 +9,6 @@ from wiki2wiki_url_conversion import wiki2wiki
 from wiki2numbeo_url_conversion import wiki2numbeo
 
 
-
 # remove already existing json files to prevent duplicates and format errors
 def clear_json(file_name):
     if os.path.exists(file_name):
