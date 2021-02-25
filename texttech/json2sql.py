@@ -1,7 +1,7 @@
 """Functions to take the data from json_formatting and turn it into a combined
 SQL table"""
 import sqlite3
-from json_formatting import FORMATTED_NUMBEO, FORMATTED_WIKI
+from json_formatting import get_data
 from pprint import pprint
 
 
@@ -14,6 +14,7 @@ def create_numbeo_table(c):
     """Creates SQL table for numbeo data with three columns:
     City, Family_of_four, and Single_person"""
     with c:
+        c.execute('DROP TABLE IF EXISTS numbeo;')
         c.execute('CREATE TABLE numbeo ('
                   'City TEXT PRIMARY KEY, '
                   'Family_of_four INTEGER, '
@@ -24,6 +25,7 @@ def create_wiki_table(c):
     """Creates SQL table for wiki data with five columns:
     City, State, Area, Population, and Density"""
     with c:
+        c.execute('DROP TABLE IF EXISTS wiki;')
         c.execute('CREATE TABLE wiki ('
                   'City TEXT PRIMARY KEY, '
                   'State TEXT, '
@@ -83,4 +85,5 @@ def build_sql_tables(wiki_data, numbeo_data):
 
 
 if __name__ == '__main__':
-    build_sql_tables(FORMATTED_WIKI, FORMATTED_NUMBEO)
+    formatted_wiki, formatted_numbeo = get_data()
+    build_sql_tables(formatted_wiki, formatted_numbeo)

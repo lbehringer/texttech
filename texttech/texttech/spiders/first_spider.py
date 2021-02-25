@@ -1,7 +1,6 @@
 import scrapy
-import json
-from wiki2wiki_url_conversion import wiki_cities
-from wiki2numbeo_url_conversion import numbeo_cities
+#from wiki2wiki_url_conversion import wiki_cities
+#from wiki2numbeo_url_conversion import numbeo_cities
 
 
 class WikiSpider(scrapy.Spider):
@@ -10,11 +9,12 @@ class WikiSpider(scrapy.Spider):
     Test change
     """
     name = "wiki"
-    start_urls = wiki_cities
+    #start_urls = wiki_cities
 
     # custom settings to save results to a json file
-    custom_settings = {'FEED_URI': "wiki.json",
-                       'FEED_FORMAT': 'json'}
+    custom_settings = {"FEEDS": {
+        "wiki.json": {"format": "json"},
+    }}
 
     def parse(self, response):
         # set rows to xpath for the table with the city info
@@ -84,26 +84,29 @@ class WikiSpider(scrapy.Spider):
 
 class NumbeoSpider(scrapy.Spider):
     name = 'numbeo'
-    start_urls = numbeo_cities
+    start_urls = []
 
     # custom settings to save results to a json file
-    custom_settings = {'FEED_URI': "numbeo.json",
-                       'FEED_FORMAT': 'json'}
+    custom_settings = {"FEEDS": {
+        "numbeo.json": {"format": "json"},
+    }}
 
     def parse(self, response):
         path = response.xpath('/html/body/div[2]/div[2]')
         city = path.xpath('p/span[@class="purple_light"]/text()').get()
         four = path.xpath('ul/li[1]/span/text()').get()
         single = path.xpath('ul/li[2]/span/text()').get()
-        yield {'City': city, 'Family_of_four': four, "Single_person": single}
+        if city:
+            yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
 class urlSpider(scrapy.Spider):
     name = 'url'
     start_urls = ['https://en.wikipedia.org/wiki/List_of_cities_in_Germany_by_population']
     # custom settings to save results to a json file
-    custom_settings = {'FEED_URI': "urls.json",
-                       'FEED_FORMAT': 'json'}
+    custom_settings = {"FEEDS": {
+        "urls.json": {"format": "json"},
+    }}
 
     def parse(self, response):
         rows = response.xpath('//*[@id="mw-content-text"]/div[1]/table/tbody/tr')
@@ -121,21 +124,12 @@ class urlSpider(scrapy.Spider):
             if link is None:
                 link = row.xpath('td/a/@href').get()
             urls[link] = 0
+        if None in urls:
+            del urls[None]
         yield urls
 
 
-def read_json(file_name):
-    """
-    :param file_name: string that matches the path to the json (probable urls.json)
-    :return: list of strings of urls
-    """
-    # to make this work, the json file must be in the same location as the spider
 
-    with open(file_name) as f:
-        f = json.load(f)
-    url_dict = f[0]
-    urls = [key for key, value in url_dict.items()]
-    return urls[1:]
 
 
 if __name__ == '__main__':

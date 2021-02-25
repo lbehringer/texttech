@@ -83,13 +83,13 @@ def format_wiki_data(wiki_data):
     also extracts data from the nested population dictionary to make it easier
     to access.
     """
-    # ISSUE: there are three weird entries that don't have proper city names
 
     formatted = []
 
     for entry in wiki_data:
         # get the city name
         city = get_wiki_city(entry)
+        city = remove_umlaut(city)
 
         # get the state name
         state = get_wiki_state(entry, city)
@@ -164,7 +164,9 @@ def get_wiki_popdensity(entry, area):
 
 
 # read data from file and format it for entry into SQL tables
-NUMBEO_DATA = load_json('numbeo.json')
-FORMATTED_NUMBEO = format_numbeo_data(NUMBEO_DATA)
-WIKI_DATA = load_json('wiki.json')
-FORMATTED_WIKI = format_wiki_data(WIKI_DATA)
+def get_data():
+    numbeo_data = load_json('numbeo.json')
+    formatted_numbeo = format_numbeo_data(numbeo_data)
+    wiki_data = load_json('wiki.json')
+    formatted_wiki = format_wiki_data(wiki_data)
+    return formatted_wiki, formatted_numbeo
