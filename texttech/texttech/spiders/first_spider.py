@@ -1,15 +1,25 @@
+"""
+This file contains the spiders WikiSpider, NumbeoSpiderSelenium, NumbeoSpider, and urlSpider.
+NumbeoSpiderSelenium and NumbeoSpider are identical except for the fact that
+NumbeoSpiderSelenium uses both scrapy and selenium. Here, selenium is configured for Chrome.
+In order to work properly, both Chrome and Chromedriver need to be installed.
+Furthermore, Chromedriver needs to be added to the PATH system variable.
+
+"""
+
 import scrapy
-#from wiki2wiki_url_conversion import wiki_cities
-#from wiki2numbeo_url_conversion import numbeo_cities
+from scrapy.shell import inspect_response
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+import time
 
 
 class WikiSpider(scrapy.Spider):
     """
     spider to get city data from Wikipedia pages
-    Test change
     """
     name = "wiki"
-    #start_urls = wiki_cities
+    start_urls = []
 
     # custom settings to save results to a json file
     custom_settings = {"FEEDS": {
@@ -82,25 +92,78 @@ class WikiSpider(scrapy.Spider):
         yield city_data
 
 
-class NumbeoSpider(scrapy.Spider):
+class NumbeoSpiderSelenium(scrapy.Spider):
+    """
+    Spider to get city data from numbeo.com pages
+    Runs with both Scrapy and selenium
+    """
     name = 'numbeo'
     start_urls = []
-
+    download_delay = 0.25
     # custom settings to save results to a json file
     custom_settings = {"FEEDS": {
         "numbeo.json": {"format": "json"},
     }}
 
     def parse(self, response):
+        url = response.url
         path = response.xpath('/html/body/div[2]/div[2]')
         city = path.xpath('p/span[@class="purple_light"]/text()').get()
         four = path.xpath('ul/li[1]/span/text()').get()
         single = path.xpath('ul/li[2]/span/text()').get()
+        error = path.xpath('//div[@style="error_message"]')
+        no_data = path.xpath('//div[@class="no-much-data"]')
+
+        if city:
+            yield {'City': city, 'Family_of_four': four, "Single_person": single}
+
+        # in case of popup, extract data with selenium
+        elif not error and not no_data:
+            driver = webdriver.Chrome()
+            driver.get(url)
+            driver.maximize_window()
+            try:  # if popup appears in selenium, close it and then extract data
+                close_button = driver.find_element_by_xpath(
+                    '//button[@class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only '
+                    'ui-dialog-titlebar-close"]')
+                close_button.click()
+                time.sleep(1)
+                city, four, single = run_selenium(driver)
+                yield {'City': city, 'Family_of_four': four, "Single_person": single}
+            except NoSuchElementException:  # if no popup appears, just extract data
+                city, four, single = run_selenium(driver)
+                yield {'City': city, 'Family_of_four': four, "Single_person": single}
+
+
+class NumbeoSpider(scrapy.Spider):
+    """
+    Spider to get city data from numbeo.com pages
+    """
+    name = 'numbeo2'
+    start_urls = []
+    download_delay = 0.25
+    # custom settings to save results to a json file
+    custom_settings = {"FEEDS": {
+        "numbeo.json": {"format": "json"},
+    }}
+
+    def parse(self, response):
+        url = response.url
+        path = response.xpath('/html/body/div[2]/div[2]')
+        city = path.xpath('p/span[@class="purple_light"]/text()').get()
+        four = path.xpath('ul/li[1]/span/text()').get()
+        single = path.xpath('ul/li[2]/span/text()').get()
+        error = path.xpath('//div[@style="error_message"]')
+        no_data = path.xpath('//div[@class="no-much-data"]')
+
         if city:
             yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
 class urlSpider(scrapy.Spider):
+    """
+    Spider to get subdirectories of all cities in our initial input list
+    """
     name = 'url'
     start_urls = ['https://en.wikipedia.org/wiki/List_of_cities_in_Germany_by_population']
     # custom settings to save results to a json file
@@ -129,7 +192,17 @@ class urlSpider(scrapy.Spider):
         yield urls
 
 
-
+def run_selenium(driver):
+    """
+    Extracts numbeo data via selenium
+    """
+    city_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/p/span[@class="purple_light"]')
+    four_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[1]/span[1]')
+    single_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[2]/span[1]')
+    city = city_element.text
+    four = four_element.text
+    single = single_element.text
+    return city, four, single
 
 
 if __name__ == '__main__':

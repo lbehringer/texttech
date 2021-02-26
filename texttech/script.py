@@ -1,16 +1,13 @@
-import scrapy
 import os
 import json
-from twisted.internet import reactor
-from scrapy.crawler import CrawlerProcess, CrawlerRunner
-from scrapy.utils.log import configure_logging
-from texttech.spiders.first_spider import urlSpider, WikiSpider, NumbeoSpider
-from wiki2wiki_url_conversion import wiki2wiki
-from wiki2numbeo_url_conversion import wiki2numbeo
+from scrapy.crawler import CrawlerProcess
+from texttech.spiders.first_spider import urlSpider
 
 
-# remove already existing json files to prevent duplicates and format errors
 def clear_json(file_name):
+    """
+    Removes already existing json files to prevent duplicates and format errors
+    """
     if os.path.exists(file_name):
         os.remove(file_name)
     return None
@@ -30,55 +27,8 @@ def read_json(file_name):
     return urls
 
 
-# outputs the results of urlSpider to a file "urls.json"
+# crawl urls and output the results of urlSpider to a file "urls.json"
 url_process = CrawlerProcess()
-wiki_numbeo_process = CrawlerProcess()
-
-clear_json("urls.json")
+clear_json("urls.json")  # clears "urls.json" if it already exists to avoid format errors
 url_process.crawl(urlSpider)
 url_process.start()
-
-#run_wiki_numbeo_spiders()
-
-
-# # use urls.json for WikiSpider and NumbeoSpider
-# incomplete_urls = read_json("urls.json")
-#
-# # convert incomplete_urls to wiki_urls and numbeo_urls
-# wiki_urls = [wiki2wiki(city) for city in incomplete_urls]
-# numbeo_urls = [wiki2numbeo(city) for city in incomplete_urls]
-#
-# print(wiki_urls)
-# print(numbeo_urls)
-#
-# wiki_numbeo_process.crawl(WikiSpider, start_urls=wiki_urls)
-# wiki_numbeo_process.start(stop_after_crawl=False)
-# wiki_numbeo_process.crawl(NumbeoSpider, start_urls=numbeo_urls)
-# wiki_numbeo_process.start(stop_after_crawl=True)
-
-#configure_logging({'LOG_FORMAT': '%(levelname)s: %(message)s'})
-#runner = CrawlerRunner()
-#wiki_numbeo_process = CrawlerProcess()
-
-
-"""Failed attempt with CrawlerRunner"""
-# clear_json("urls.json")
-# d = runner.crawl(urlSpider)
-# d.addboth(lambda _: reactor.stop())
-# reactor.run()
-#
-#
-# # use urls.json for WikiSpider and NumbeoSpider
-# incomplete_urls = read_json("urls.json")
-#
-# # convert incomplete_urls to wiki_urls and numbeo_urls
-# wiki_urls = [wiki2wiki(city) for city in incomplete_urls]
-# numbeo_urls = [wiki2numbeo(city) for city in incomplete_urls]
-#
-# print(wiki_urls)
-# print(numbeo_urls)
-#
-# wiki_numbeo_process.crawl(WikiSpider, start_urls=wiki_urls)
-# wiki_numbeo_process.start(stop_after_crawl=False)
-# wiki_numbeo_process.crawl(NumbeoSpider, start_urls=numbeo_urls)
-# wiki_numbeo_process.start(stop_after_crawl=True)

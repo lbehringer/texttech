@@ -2,7 +2,6 @@
 SQL table"""
 import sqlite3
 from json_formatting import get_data
-from pprint import pprint
 
 
 def create_connection(db_name):

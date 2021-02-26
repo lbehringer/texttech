@@ -1,14 +1,15 @@
 """
-Please run this script only if the selenium setup does not work on your machine (see first_spider.py for setup).
-This script runs WikiSpider and NumbeoSpider WITHOUT selenium.
-This will result in an incomplete result list for the numbeo.com data.
+This script runs WikiSpider and NumbeoSpiderSelenium WITH selenium.
+Please make sure you have Chrome and Chromedriver installed and also that Chromedriver
+been added to the PATH system variable.
+If the setup does not work, please run script2.py instead.
 """
 
 
 import json
 import os
 from scrapy.crawler import CrawlerProcess
-from texttech.spiders.first_spider import WikiSpider, NumbeoSpider
+from texttech.spiders.first_spider import WikiSpider, NumbeoSpiderSelenium
 from wiki2wiki_url_conversion import wiki2wiki
 from wiki2numbeo_url_conversion import wiki2numbeo
 from json_formatting import format_wiki_data, format_numbeo_data, load_json
@@ -70,14 +71,14 @@ def convert_urls():
 def run_wiki_numbeo_spiders():
     """
     Assigns functional URLs as start_urls for the respective spiders,
-    clears existing json files and runs WikiSpider and NumbeoSpider
+    clears existing json files and runs WikiSpider and NumbeoSpiderSelenium
     """
     wiki_urls, numbeo_urls = convert_urls()
     clear_json("wiki.json")
     clear_json("numbeo.json")
     process = CrawlerProcess()
     process.crawl(WikiSpider, start_urls=wiki_urls)
-    process.crawl(NumbeoSpider, start_urls=numbeo_urls)
+    process.crawl(NumbeoSpiderSelenium, start_urls=numbeo_urls)
     process.start()
     return None
 

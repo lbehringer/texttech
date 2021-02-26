@@ -163,10 +163,15 @@ def get_wiki_popdensity(entry, area):
     return int(density), int(population)
 
 
-# read data from file and format it for entry into SQL tables
 def get_data():
+    """
+    Reads data from file and formats it for entry into SQL tables
+    """
     numbeo_data = load_json('numbeo.json')
     formatted_numbeo = format_numbeo_data(numbeo_data)
+    numbeo_data2 = load_json('numbeo2.json')
+    formatted_numbeo2 = format_numbeo_data(numbeo_data2)
+    formatted_numbeo.extend(formatted_numbeo2)
     wiki_data = load_json('wiki.json')
     formatted_wiki = format_wiki_data(wiki_data)
     return formatted_wiki, formatted_numbeo
