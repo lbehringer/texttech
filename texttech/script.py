@@ -1,12 +1,7 @@
-import scrapy
 import os
 import json
-from twisted.internet import reactor
-from scrapy.crawler import CrawlerProcess, CrawlerRunner
-from scrapy.utils.log import configure_logging
-from texttech.spiders.first_spider import urlSpider, WikiSpider, NumbeoSpider
-from wiki2wiki_url_conversion import wiki2wiki
-from wiki2numbeo_url_conversion import wiki2numbeo
+from scrapy.crawler import CrawlerProcess
+from texttech.spiders.first_spider import urlSpider
 
 
 def clear_json(file_name):
