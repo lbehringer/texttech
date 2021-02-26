@@ -1,6 +1,9 @@
 import scrapy
-#from wiki2wiki_url_conversion import wiki_cities
-#from wiki2numbeo_url_conversion import numbeo_cities
+from scrapy.shell import inspect_response
+import selenium
+from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
+import time
 
 
 class WikiSpider(scrapy.Spider):
@@ -9,7 +12,7 @@ class WikiSpider(scrapy.Spider):
     Test change
     """
     name = "wiki"
-    #start_urls = wiki_cities
+    start_urls = []
 
     # custom settings to save results to a json file
     custom_settings = {"FEEDS": {
@@ -85,19 +88,48 @@ class WikiSpider(scrapy.Spider):
 class NumbeoSpider(scrapy.Spider):
     name = 'numbeo'
     start_urls = []
-
+    download_delay = 0.25
     # custom settings to save results to a json file
     custom_settings = {"FEEDS": {
         "numbeo.json": {"format": "json"},
     }}
 
     def parse(self, response):
+        url = response.url
         path = response.xpath('/html/body/div[2]/div[2]')
         city = path.xpath('p/span[@class="purple_light"]/text()').get()
         four = path.xpath('ul/li[1]/span/text()').get()
         single = path.xpath('ul/li[2]/span/text()').get()
+        error = path.xpath('//div[@style="error_message"]')
+        no_data = path.xpath('//div[@class="no-much-data"]')
+
         if city:
             yield {'City': city, 'Family_of_four': four, "Single_person": single}
+
+        # in case of popup, extract data with selenium
+        elif not error and not no_data:
+            driver = webdriver.Chrome()
+            driver.get(url)
+            driver.maximize_window()
+            try:
+                close_button = driver.find_element_by_xpath(
+                    '//button[@class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only '
+                    'ui-dialog-titlebar-close"]')
+                close_button.click()
+                time.sleep(1)
+            finally:
+                city_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/p/span[@class="purple_light"]')
+                four_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[1]/span[1]')
+                single_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[2]/span[1]')
+                city = city_element.text
+                four = four_element.text
+                single = single_element.text
+                yield {'City': city, 'Family_of_four': four, "Single_person": single}
+
+
+        # uncomment the following 2 lines to inspect failed responses for valid links
+        # elif not error and not no_data:
+        #     inspect_response(response, self)
 
 
 class urlSpider(scrapy.Spider):

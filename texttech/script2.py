@@ -9,6 +9,9 @@ from json2sql import build_sql_tables
 
 
 def clear_json(file_name):
+    """
+    Removes json file if it already exists
+    """
     if os.path.exists(file_name):
         os.remove(file_name)
     return None
@@ -29,6 +32,9 @@ def read_json(file_name):
 
 
 def numbeo_tuples_to_list(incomplete_urls):
+    """
+    Converts the tuples of numbeo-url variants to a list
+    """
     numbeo_urls = []
     for city in incomplete_urls:
         try:
@@ -45,16 +51,20 @@ def numbeo_tuples_to_list(incomplete_urls):
 
 
 def convert_urls():
-    # use urls.json for WikiSpider and NumbeoSpider
+    """
+    Converts entries in "urls.json" to functional URLs for WikiSpider and NumbeoSpider
+    """
     incomplete_urls = read_json("urls.json")
-
-    # convert incomplete_urls to wiki_urls and numbeo_urls
     wiki_urls = [wiki2wiki(city) for city in incomplete_urls]
     numbeo_urls = numbeo_tuples_to_list(incomplete_urls)
     return wiki_urls, numbeo_urls
 
 
 def run_wiki_numbeo_spiders():
+    """
+    Assigns functional URLs as start_urls for the respective spiders,
+    clears existing json files and runs WikiSpider and NumbeoSpider
+    """
     wiki_urls, numbeo_urls = convert_urls()
     clear_json("wiki.json")
     clear_json("numbeo.json")
@@ -65,13 +75,11 @@ def run_wiki_numbeo_spiders():
     return None
 
 
-# run WikiSpider and NumbeoSpider simultaneously
 run_wiki_numbeo_spiders()
 # read data from files "numbeo.json" and "wiki.json" and format it for entry into SQL tables
 NUMBEO_DATA = load_json('numbeo.json')
 FORMATTED_NUMBEO = format_numbeo_data(NUMBEO_DATA)
 WIKI_DATA = load_json('wiki.json')
 FORMATTED_WIKI = format_wiki_data(WIKI_DATA)
-
 #create sql tables from formatted data
 build_sql_tables(FORMATTED_WIKI, FORMATTED_NUMBEO)
