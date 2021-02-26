@@ -1,6 +1,14 @@
+"""
+This file contains the spiders WikiSpider, NumbeoSpiderSelenium, NumbeoSpider, and urlSpider.
+NumbeoSpiderSelenium and NumbeoSpider are identical except for the fact that
+NumbeoSpiderSelenium uses both scrapy and selenium. Here, selenium is programmed for Chrome.
+In order to work properly, both Chrome and Chromedriver need to be installed.
+Furthermore, Chromedriver needs to be added to the PATH system variable.
+
+"""
+
 import scrapy
 from scrapy.shell import inspect_response
-import selenium
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 import time
@@ -85,7 +93,7 @@ class WikiSpider(scrapy.Spider):
         yield city_data
 
 
-class NumbeoSpider(scrapy.Spider):
+class NumbeoSpiderSelenium(scrapy.Spider):
     name = 'numbeo'
     start_urls = []
     download_delay = 0.25
@@ -111,25 +119,43 @@ class NumbeoSpider(scrapy.Spider):
             driver = webdriver.Chrome()
             driver.get(url)
             driver.maximize_window()
-            try:
+            try:  # if popup appears in selenium, close it and then extract data
                 close_button = driver.find_element_by_xpath(
                     '//button[@class="ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only '
                     'ui-dialog-titlebar-close"]')
                 close_button.click()
                 time.sleep(1)
-            finally:
-                city_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/p/span[@class="purple_light"]')
-                four_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[1]/span[1]')
-                single_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[2]/span[1]')
-                city = city_element.text
-                four = four_element.text
-                single = single_element.text
+                city, four, single = run_selenium(driver)
                 yield {'City': city, 'Family_of_four': four, "Single_person": single}
-
+            except NoSuchElementException:  # if no popup appears, just extract data
+                city, four, single = run_selenium(driver)
+                yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
         # uncomment the following 2 lines to inspect failed responses for valid links
         # elif not error and not no_data:
         #     inspect_response(response, self)
+
+
+class NumbeoSpider(scrapy.Spider):
+    name = 'numbeo2'
+    start_urls = []
+    download_delay = 0.25
+    # custom settings to save results to a json file
+    custom_settings = {"FEEDS": {
+        "numbeo.json": {"format": "json"},
+    }}
+
+    def parse(self, response):
+        url = response.url
+        path = response.xpath('/html/body/div[2]/div[2]')
+        city = path.xpath('p/span[@class="purple_light"]/text()').get()
+        four = path.xpath('ul/li[1]/span/text()').get()
+        single = path.xpath('ul/li[2]/span/text()').get()
+        error = path.xpath('//div[@style="error_message"]')
+        no_data = path.xpath('//div[@class="no-much-data"]')
+
+        if city:
+            yield {'City': city, 'Family_of_four': four, "Single_person": single}
 
 
 class urlSpider(scrapy.Spider):
@@ -161,8 +187,14 @@ class urlSpider(scrapy.Spider):
         yield urls
 
 
-
-
+def run_selenium(driver):
+    city_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/p/span[@class="purple_light"]')
+    four_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[1]/span[1]')
+    single_element = driver.find_element_by_xpath('/html/body/div[2]/div[2]/ul/li[2]/span[1]')
+    city = city_element.text
+    four = four_element.text
+    single = single_element.text
+    return city, four, single
 
 if __name__ == '__main__':
     pass
